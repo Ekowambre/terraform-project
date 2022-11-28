@@ -98,7 +98,7 @@ resource "aws_internet_gateway" "Test-igw" {
 # Internet gateway attachment (route)
 resource "aws_route" "Test-igw-association1" {
   route_table_id            = aws_route_table.Test-pub-route-table.id
-  destination_cidr_block    = "0.0.0.0/0"
+  destination_cidr_block    = var.Test-igw-association-aws_route
   gateway_id                = aws_internet_gateway.Test-igw.id
 }
 
@@ -130,7 +130,7 @@ resource "aws_nat_gateway" "Test-Nat-gateway2" {
 # create Security group for the ec2 instance
 resource "aws_security_group" "ec2_security_group" {
   name        = "ec2 security group"
-  description = "allow acess on port 80 and 22"
+  description = var.ec2_security_group-aws_security_group
   vpc_id      = aws_vpc.Prod-rock-VPC.id
 
 
