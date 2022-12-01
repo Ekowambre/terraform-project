@@ -1,6 +1,6 @@
 # creating vpc
 resource "aws_vpc" "Prod-rock-VPC" {
-  cidr_block       = var.Prod-rock-VPC-cidr_block
+  cidr_block           = var.Prod-rock-VPC-cidr_block
   enable_dns_hostnames = true
 
   tags = {
@@ -97,76 +97,70 @@ resource "aws_internet_gateway" "Test-igw" {
 
 # Internet gateway attachment (route)
 resource "aws_route" "Test-igw-association1" {
-  route_table_id            = aws_route_table.Test-pub-route-table.id
-  destination_cidr_block    = var.Test-igw-association-aws_route
-  gateway_id                = aws_internet_gateway.Test-igw.id
+  route_table_id         = aws_route_table.Test-pub-route-table.id
+  destination_cidr_block = var.Test-igw-association-aws_route
+  gateway_id             = aws_internet_gateway.Test-igw.id
 }
 
 
 # elastic ip address
 resource "aws_eip" "Test-eip" {
-  vpc                       = true
+  vpc = true
 }
 
 # NAT gateway components
-resource "aws_nat_gateway" "Test-Nat-gateway1" {
-  subnet_id     = aws_subnet.Test-priv-sub1.id
-  connectivity_type = "private"
-
-  tags = {
-    Name = "Test-Nat-gateway1"
-  }
-}
-
-resource "aws_nat_gateway" "Test-Nat-gateway2" {
+resource "aws_nat_gateway" "Test-Nat-gateway" {
   allocation_id = aws_eip.Test-eip.id
-  subnet_id     = aws_subnet.Test-priv-sub2.id
+  subnet_id     = aws_subnet.Test-public-sub1.id
 
   tags = {
     Name = "Test-Nat-gateway2"
   }
 }
 
+# Nat gateway attachment (route)
+resource "aws_route" "Test-Nat-gateway-association" {
+  route_table_id         = aws_route_table.Test-priv-route-table.id
+  destination_cidr_block = var.Test-Nat-gateway-association-aws_route
+  gateway_id             = aws_nat_gateway.Test-Nat-gateway.id
+}
+
 # create Security group for the ec2 instance
 resource "aws_security_group" "ec2_security_group" {
-  name        = "ec2 security group"
-  description = var.ec2_security_group-aws_security_group
-  vpc_id      = aws_vpc.Prod-rock-VPC.id
-
+    description = var.ec2_security_group-aws_security_group
+  vpc_id      = "${aws_vpc.Prod-rock-VPC.id}"
 
   ingress {
-    description     = "ssh access"
-    from_port       = 22
-    to_port         = 22
-    protocol        = "tcp"
-    cidr_blocks     = ["99.235.52.141/32"]
+    description = var.ingress-type1
+    from_port   = 22
+    to_port     = 22
+    protocol    = var.protocol_type1
+    cidr_blocks = var.ingress1-cidr_block
   }
 
   ingress {
-    description     = "http access"
-    from_port       = 80
-    to_port         = 80
-    protocol        = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
+    description = var.ingress-type2
+    from_port   = 80
+    to_port     = 80
+    protocol    = var.protocol_type2
+    cidr_blocks = var.ingress2-cidr_block
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = var.egress-cidr_block
+}
 }
 
-egress {
-  from_port           = 0
-  to_port             = 0
-  protocol            = -1
-  cidr_blocks         = ["0.0.0.0/0"]
-}
-
-tags       =  {
-  Name     = "ec2 security group"
-}
-}
 
 # ec2 instance 
 resource "aws_instance" "Test-server-1" {
   ami           = var.aws_instance-Test-server-1
-  instance_type = "t2.micro"
-  subnet_id = aws_subnet.Test-priv-sub1.id
+  instance_type = var.type
+  subnet_id     = aws_subnet.Test-priv-sub1.id
+  vpc_security_group_ids = ["${aws_security_group.ec2_security_group.id}"]
   tenancy       = "default"
 
   tags = {
@@ -174,10 +168,12 @@ resource "aws_instance" "Test-server-1" {
   }
 }
 
+
 resource "aws_instance" "Test-server-2" {
   ami           = var.aws_instance-Test-server-2 # eu-west-2
-  instance_type = "t2.micro"
-  subnet_id = aws_subnet.Test-public-sub2.id
+  instance_type = var.type
+  subnet_id     = aws_subnet.Test-public-sub2.id
+  vpc_security_group_ids = ["${aws_security_group.ec2_security_group.id}"]
   tenancy       = "default"
 
   tags = {
