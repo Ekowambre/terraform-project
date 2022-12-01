@@ -1,15 +1,15 @@
-# region   ###############################################################################
+# region   
 variable "region_aws" {
 default = "eu-west-2"
 }
 
-# vpc cidr block  ######################################################################
+# vpc cidr block  
 variable "Prod-rock-VPC-cidr_block" {
     default = "10.0.0.0/16"
     description = "Prod-rock-VPC"
 }
 
-# creating 2 public Test subnets  ######################################################
+# creating 2 public Test subnets  
 variable "aws_subnet-Test-public-sub1-cidr_block" {
   default = "10.0.1.0/24"
   description = "Test-public-sub1-cidr_block"
@@ -20,7 +20,7 @@ variable "Test-public-sub2-cidr_block" {
   description = "Test-public-sub2-cidr_block"
 }
 
-# creating 2 private Test subnets  #####################################################
+# creating 2 private Test subnets  
 variable "Test-priv-sub1-cidr_block" {
   default = "10.0.3.0/24"
   description = "Test-priv-sub1-cidr_block"
